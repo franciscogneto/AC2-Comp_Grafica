@@ -48,23 +48,34 @@
         var scene = null;
         var sceneToRender = null;
         var createDefaultEngine = function () { return new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true, disableWebGL2Support: false }); };
+        var camera = null;
+        var inputMap = {};
 
         var createScene = function () {
 
-            // Low Poly Character with Blender Tutorial of Grant Abbitt: https://www.youtube.com/user/mediagabbitt
-            // Character animations by Mixamo: https://www.mixamo.com/
-
+            // Engine Config
             engine.enableOfflineSupport = false;
 
-            // Scene and Camera
-            var scene = new BABYLON.Scene(engine);
+            // Scene
+            scene = new BABYLON.Scene(engine);
 
-            var camera1 = new BABYLON.ArcRotateCamera("camera1", Math.PI / 2, Math.PI / 4, 10, new BABYLON.Vector3(0, -5, 0), scene);
-            scene.activeCamera = camera1;
+            buildGUI();
+            createEnvironment();
+            managerEvents();
+            createHero();
+
+            return scene;
+        }
+
+        function createEnvironment() {
+
+            // Camera
+            camera = new BABYLON.ArcRotateCamera("camera", Math.PI / 2, Math.PI / 4, 10, new BABYLON.Vector3(0, -5, 0), scene);
+            scene.activeCamera = camera;
             scene.activeCamera.attachControl(canvas, true);
-            camera1.lowerRadiusLimit = 2;
-            camera1.upperRadiusLimit = 10;
-            camera1.wheelDeltaPercentage = 0.01;
+            camera.lowerRadiusLimit = 2;
+            camera.upperRadiusLimit = 100;
+            camera.wheelDeltaPercentage = 0.01;
 
             // Lights
             var light = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(0, 1, 0), scene);
@@ -78,21 +89,11 @@
             var skybox = BABYLON.MeshBuilder.CreateBox("skyBox", { size: 1000.0 }, scene);
             var skyboxMaterial = new BABYLON.StandardMaterial("skyBox", scene);
             skyboxMaterial.backFaceCulling = false;
-            skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("http://www.babylonjs-playground.com/textures/skybox2", scene);
+            skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("http://www.babylonjs-playground.com/textures/skybox4", scene);
             skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
             skyboxMaterial.diffuseColor = BABYLON.Color3.Black()
             skyboxMaterial.specularColor = BABYLON.Color3.Black();
             skybox.material = skyboxMaterial;
-
-            // GUI
-            var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
-            var instructions = new BABYLON.GUI.TextBlock();
-            instructions.text = "Move w/ WASD keys, B for Samba, look with the mouse";
-            instructions.color = "white";
-            instructions.fontSize = 16;
-            instructions.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT
-            instructions.textVerticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM
-            advancedTexture.addControl(instructions);
 
             // Ground
             var ground = BABYLON.MeshBuilder.CreateGround("ground", { height: 50, width: 50, subdivisions: 4 }, scene);
@@ -102,9 +103,64 @@
             groundMaterial.diffuseTexture.vScale = 30;
             groundMaterial.specularColor = new BABYLON.Color3(.1, .1, .1);
             ground.material = groundMaterial;
+        }
 
+        function buildGUI() {
+            var advancedTexture;
+
+            if (advancedTexture) {
+                advancedTexture.dispose();
+            }
+
+            advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+
+            var autoresPanel = new BABYLON.GUI.StackPanel();
+            autoresPanel.width = "350px"
+            autoresPanel.height = "100px";
+            autoresPanel.isVertical = true;
+            autoresPanel.paddingBottom = "20px";
+            autoresPanel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
+            autoresPanel.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+            autoresPanel.fontSize = 16;
+            advancedTexture.addControl(autoresPanel);
+
+            var comandosPanel = new BABYLON.GUI.StackPanel();
+            comandosPanel.width = "155px";
+            comandosPanel.isVertical = true;
+            comandosPanel.paddingRight = "0px";
+            comandosPanel.paddingBottom = "125px";
+            comandosPanel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
+            comandosPanel.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+            comandosPanel.fontSize = 16;
+            advancedTexture.addControl(comandosPanel);
+
+            var addHeader = function (text, panel, alinhamento) {
+                var header = new BABYLON.GUI.TextBlock();
+                header.text = text;
+                header.height = "30px";
+                header.color = "white";
+                header.textHorizontalAlignment = alinhamento;
+
+                panel.addControl(header);
+            }
+
+            var alinhamentoEsquerda = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+            var alinhamentoCentro = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+
+            addHeader("COMANDOS", comandosPanel, alinhamentoEsquerda);
+            addHeader("- Mover: W|A|S|D", comandosPanel, alinhamentoEsquerda);
+            addHeader("- Sambar: [B]", comandosPanel, alinhamentoEsquerda);
+            addHeader("- Câmera: Mouse", comandosPanel, alinhamentoEsquerda);
+
+            addHeader("AUTORES", autoresPanel, alinhamentoCentro);
+            addHeader("Francisco Godinho Neto - 180141", autoresPanel, alinhamentoCentro);
+            addHeader("Vinícius Cavalcante Silva Souza - 180854", autoresPanel, alinhamentoCentro);
+
+        }
+
+        function managerEvents() {
             // Keyboard events
-            var inputMap = {};
+            inputMap = {};
             scene.actionManager = new BABYLON.ActionManager(scene);
             scene.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnKeyDownTrigger, function (evt) {
                 inputMap[evt.sourceEvent.key] = evt.sourceEvent.type == "keydown";
@@ -112,7 +168,9 @@
             scene.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnKeyUpTrigger, function (evt) {
                 inputMap[evt.sourceEvent.key] = evt.sourceEvent.type == "keydown";
             }));
+        }
 
+        function createHero() {
 
             // Load hero character
             BABYLON.SceneLoader.ImportMesh("", "https://assets.babylonjs.com/meshes/", "HVGirl.glb", scene, function (newMeshes, particleSystems, skeletons, animationGroups) {
@@ -122,7 +180,7 @@
                 hero.scaling.scaleInPlace(0.1);
 
                 //Lock camera on the character 
-                camera1.target = hero;
+                camera.target = hero;
 
                 //Hero character variables 
                 var heroSpeed = 0.03;
@@ -199,10 +257,18 @@
                 });
             });
 
-            return scene;
+            // Load Exploding Barrel
+            BABYLON.SceneLoader.ImportMesh("", "https://models.babylonjs.com/", "ExplodingBarrel.glb", scene, function (newMeshes, particleSystems, skeletons, animationGroups) {
+                var barrel = newMeshes[0];
+
+                //Scale the model down        
+                barrel.scaling.scaleInPlace(0.015);
+
+                barrel.position = new BABYLON.Vector3(3, 0, 0);
+            });
+
         }
-        var engine;
-        var scene;
+
         initFunction = async function () {
             var asyncEngineCreation = async function () {
                 try {
