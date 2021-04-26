@@ -231,13 +231,15 @@
 
             BABYLON.SceneLoader.ImportMesh("", "https://models.babylonjs.com/", "ExplodingBarrel.glb", scene, function (newMeshes, particleSystems, skeletons, animationGroups) {
                 var barrel = newMeshes[0];
-                barrel.name = 'barril';
+                const cylinder = BABYLON.MeshBuilder.CreateCylinder("barril", { diameter: 0.65 }, scene);
+
+
                 console.log(barrel.name);
                 scene.addMesh(barrel);
                 //Scale the model down        
                 barrel.scaling.scaleInPlace(0.015);
                 barrel.position = new BABYLON.Vector3(3, 0, 0);
-
+                cylinder.position = new BABYLON.Vector3(3, 0, 0);
 
             });
 
@@ -275,7 +277,7 @@
                     var keydown = false;
                     //Manage the movements of the character (e.g. position, direction)
                     //console.log(lastMove);
-                    if (tube.intersectsMesh(hero, true)) {
+                    if (tube.intersectsMesh(hero)) {
                         if (inputMap["w"]) {
                             hero.moveWithCollisions(hero.forward.scaleInPlace(heroSpeed));
                             keydown = true;
@@ -363,12 +365,11 @@
                     }
                     var barril = scene.getMeshByName('barril');
                     if (barril != null) {
-                        //console.log(typeof (barril));
-                        if (hero.intersectsMesh(barril, false)) {
-                            console.log('aqui');
+                        if (hero.intersectsMesh(barril)) {
+                            //console.log('tocou');
                         }
                         else {
-                            console.log('aqui2w');
+                            //console.log('nao tocou');
                         }
                     }
                 });
