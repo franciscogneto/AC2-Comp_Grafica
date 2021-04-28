@@ -52,6 +52,7 @@
         var camera = null;
         var inputMap = {};
         var lastMove = '';
+        var interableMeshs = [];
         var createScene = function () {
 
             // Engine Config
@@ -67,6 +68,8 @@
 
             return scene;
         }
+
+
 
         function createEnvironment() {
 
@@ -226,20 +229,26 @@
 
 
         }
+        class Barrel {
+            constructor(barrel, name, position) {
+                this.barrel = barrel;
+                this.barrel.scaling.scaleInPlace(0.015);
+                //const cylinder = BABYLON.MeshBuilder.CreateCylinder(name, { diameter: 0.65 }, scene);
+                this.gamb = BABYLON.MeshBuilder.CreateCylinder(name, { diameter: 0.65 }, scene);
+                this.gamb.position = this.barrel.position = position;
+                scene.addMesh(this.barrel);
+                interableMeshs.push(this.gamb);
+                //observer();
+            }
 
+
+        }
         function createHero() {
 
             BABYLON.SceneLoader.ImportMesh("", "https://models.babylonjs.com/", "ExplodingBarrel.glb", scene, function (newMeshes, particleSystems, skeletons, animationGroups) {
                 var barrel = newMeshes[0];
-                const cylinder = BABYLON.MeshBuilder.CreateCylinder("barril", { diameter: 0.65 }, scene);
-
-
-                console.log(barrel.name);
-                scene.addMesh(barrel);
-                //Scale the model down        
-                barrel.scaling.scaleInPlace(0.015);
-                barrel.position = new BABYLON.Vector3(3, 0, 0);
-                cylinder.position = new BABYLON.Vector3(3, 0, 0);
+                //const cylinder = BABYLON.MeshBuilder.CreateCylinder("barril", { diameter: 0.65 }, scene);
+                var aux = new Barrel(barrel, 'barril', new BABYLON.Vector3(3, 0, 0))
 
             });
 
@@ -364,14 +373,18 @@
                         }
                     }
                     var barril = scene.getMeshByName('barril');
-                    if (barril != null) {
-                        if (hero.intersectsMesh(barril)) {
-                            //console.log('tocou');
+                    var hero1 = scene.getMeshByName('hero');
+                    interableMeshs.forEach((element) => {
+                        if (element != null) {
+                            if (hero.intersectsMesh(element)) {
+                                console.log('tocou');
+                            }
+                            else {
+                                console.log('nao tocou');
+                            }
                         }
-                        else {
-                            //console.log('nao tocou');
-                        }
-                    }
+                    });
+
                 });
             });
 
