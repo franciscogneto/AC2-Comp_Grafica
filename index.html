@@ -53,6 +53,8 @@
         var inputMap = {};
         var lastMove = '';
         var interableMeshs = [];
+        var barrels = [];
+        var iteracao = 0;
         var createScene = function () {
 
             // Engine Config
@@ -231,24 +233,71 @@
         }
         class Barrel {
             constructor(barrel, name, position) {
+                //this.name = name;
+                this.condition = 0;
                 this.barrel = barrel;
+                this.barrel.name = name;
                 this.barrel.scaling.scaleInPlace(0.015);
                 //const cylinder = BABYLON.MeshBuilder.CreateCylinder(name, { diameter: 0.65 }, scene);
                 this.gamb = BABYLON.MeshBuilder.CreateCylinder(name, { diameter: 0.65 }, scene);
                 this.gamb.position = this.barrel.position = position;
+
                 scene.addMesh(this.barrel);
                 interableMeshs.push(this.gamb);
+                this.particleSystem = new BABYLON.ParticleSystem("stars", 1, scene);
+                this.particleSystem.particleTexture = new BABYLON.Texture("textures/kabum.png", scene);
+                this.particleSystem.createPointEmitter(new BABYLON.Vector3(0.6, 1, 0), new BABYLON.Vector3(0, 1, 0));
+                this.particleSystem.color1 = new BABYLON.Color4(1, 1, 1);
+                this.particleSystem.color2 = new BABYLON.Color4(1, 1, 1);
+                this.particleSystem.colorDead = new BABYLON.Color4(1, 1, 1, 1);
+                this.particleSystem.emitRate = 6;
+                this.particleSystem.minEmitPower = 9;
+                this.particleSystem.maxEmitPower = 9;
+                this.particleSystem.addStartSizeGradient(0, 2);
+                this.particleSystem.addStartSizeGradient(1, 0.8);
+                this.particleSystem.minAngularSpeed = 0;
+                this.particleSystem.maxAngularSpeed = 2;
+                this.particleSystem.addDragGradient(0, 0.7, 0.7);
+                this.particleSystem.targetStopDuration = .5;
+                this.particleSystem.blendMode = BABYLON.ParticleSystem.BLENDMODE_STANDARD;
+                this.particleSystem.emitter = this.gamb.position;
+
+                this.sound = new BABYLON.Sound("explosion", "sounds/explosion.wav", scene, null, { loop: false, autoplay: false });
                 //observer();
+            }
+
+            destroy() {
+                if (this.condition == 1) {
+
+
+
+                    console.log('aaa');
+                    this.barrel.dispose();
+                    this.gamb.dispose();
+                    scene.removeMesh(this.barrel);
+                    scene.removeMesh(this.gamb);
+
+                    this.particleSystem.start();
+                    this.sound.play();
+                    this.condition = 2;
+                }
+                else if (this.condition == 0) {
+                    this.condition = 1;
+                }
+
             }
 
 
         }
         function createHero() {
 
+
             BABYLON.SceneLoader.ImportMesh("", "https://models.babylonjs.com/", "ExplodingBarrel.glb", scene, function (newMeshes, particleSystems, skeletons, animationGroups) {
                 var barrel = newMeshes[0];
+
                 //const cylinder = BABYLON.MeshBuilder.CreateCylinder("barril", { diameter: 0.65 }, scene);
-                var aux = new Barrel(barrel, 'barril', new BABYLON.Vector3(3, 0, 0))
+                var aux = new Barrel(barrel, 'barril1', new BABYLON.Vector3(3, 0, 0));
+                barrels.push(aux);
 
             });
 
@@ -377,13 +426,21 @@
                     interableMeshs.forEach((element) => {
                         if (element != null) {
                             if (hero.intersectsMesh(element)) {
-                                console.log('tocou');
+                                barrels.forEach((barrel) => {
+
+                                    if (barrel.barrel.name == element.name) {
+
+                                        barrel.destroy();
+
+                                    }
+                                });
                             }
                             else {
-                                console.log('nao tocou');
+
                             }
                         }
                     });
+
 
                 });
             });
