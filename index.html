@@ -64,6 +64,7 @@
             scene = new BABYLON.Scene(engine);
 
             buildGUI();
+            createApples();
             createEnvironment();
             managerEvents();
             createHero();
@@ -305,7 +306,7 @@
             BABYLON.SceneLoader.ImportMesh("", "https://assets.babylonjs.com/meshes/", "HVGirl.glb", scene, function (newMeshes, particleSystems, skeletons, animationGroups) {
                 var hero = newMeshes[0];
                 hero.name = 'hero';
-                //adicionando o hero a s=cena
+                //adicionando o hero a scena
                 scene.addMesh(hero);
 
                 //Scale the model down        
@@ -446,12 +447,38 @@
             });
 
             // Load Exploding Barrel
+        }
 
+        function createApples() {
+            var numApples = 10;
+            var initScale = 0.1;
+            var incScale = 0.2;
+            var posApplesX = [0, 4, 7, 8, 6, 3, 0, -6, -8, -4.5];
+            var posApplesZ = [8, 6, 3, 0, -4, -7, -8, -5.5, 0, 4.5];
 
+            for (var i = 0; i < numApples; i++) {
+                var appleItem = new Apple("apple" + i, initScale += incScale, posApplesX[i], posApplesZ[i]);
+            }
+        }
 
+        class Apple {
+            constructor(name, scale, posX, posZ) {
+                // Load Apple
+                // Using the glTF model imported from: https://www.remix3d.com/details/G009SX0N139P?section=remixes
+                BABYLON.SceneLoader.ImportMesh("", "//david.blob.core.windows.net/babylonjs/", "Apple.glb", scene, function (newMeshes) {
+                    var appleItem = newMeshes[0];
+                    appleItem.name = name;
 
+                    //Scale the apple model      
+                    appleItem.scaling.scaleInPlace(scale);
 
+                    //Set position
+                    appleItem.position.x = posX;
+                    appleItem.position.z = posZ;
 
+                    scene.addMesh(appleItem);
+                });
+            }
         }
 
         initFunction = async function () {
