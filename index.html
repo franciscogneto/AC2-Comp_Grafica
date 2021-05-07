@@ -244,26 +244,18 @@
 
                 scene.addMesh(this.barrel);
                 interableMeshs.push(this.gamb);
-                this.particleSystem = new BABYLON.ParticleSystem("stars", 1, scene);
-                this.particleSystem.particleTexture = new BABYLON.Texture("textures/kabum.png", scene);
-                this.particleSystem.createPointEmitter(new BABYLON.Vector3(0.6, 1, 0), new BABYLON.Vector3(0, 1, 0));
-                this.particleSystem.color1 = new BABYLON.Color4(1, 1, 1);
-                this.particleSystem.color2 = new BABYLON.Color4(1, 1, 1);
-                this.particleSystem.colorDead = new BABYLON.Color4(1, 1, 1, 1);
-                this.particleSystem.emitRate = 6;
-                this.particleSystem.minEmitPower = 9;
-                this.particleSystem.maxEmitPower = 9;
-                this.particleSystem.addStartSizeGradient(0, 2);
-                this.particleSystem.addStartSizeGradient(1, 0.8);
-                this.particleSystem.minAngularSpeed = 0;
-                this.particleSystem.maxAngularSpeed = 2;
-                this.particleSystem.addDragGradient(0, 0.7, 0.7);
-                this.particleSystem.targetStopDuration = .5;
-                this.particleSystem.blendMode = BABYLON.ParticleSystem.BLENDMODE_STANDARD;
-                this.particleSystem.emitter = this.gamb.position;
+                BABYLON.ParticleHelper.CreateAsync("smoke", scene).then((set) => {
+                    this.smoke = set;
+                    set.start(this.gamb.position);
+                });
+
+                // Tone mapping
+                scene.imageProcessingConfiguration.toneMappingEnabled = true;
+                scene.imageProcessingConfiguration.toneMappingType = BABYLON.ImageProcessingConfiguration.TONEMAPPING_ACES;
+                scene.imageProcessingConfiguration.exposure = 1;
+
 
                 this.sound = new BABYLON.Sound("explosion", "sounds/explosion.wav", scene, null, { loop: false, autoplay: true });
-                //observer();
             }
 
             destroy() {
@@ -277,9 +269,31 @@
                     scene.removeMesh(this.barrel);
                     scene.removeMesh(this.gamb);
 
-                    this.particleSystem.start();
-                    this.sound.play();
+                    //this.particleSystem.start();
+                    //this.sound.play();
+                    var pipeline = new BABYLON.DefaultRenderingPipeline("default", true, scene);
+
+                    // Tone mapping
+                    scene.imageProcessingConfiguration.toneMappingEnabled = true;
+                    scene.imageProcessingConfiguration.toneMappingType = BABYLON.ImageProcessingConfiguration.TONEMAPPING_ACES;
+                    scene.imageProcessingConfiguration.exposure = 1;
+
+                    // Bloom
+                    pipeline.bloomEnabled = true;
+                    pipeline.bloomThreshold = 0.8;
+                    pipeline.bloomWeight = 1;
+                    pipeline.bloomKernel = 64;
+                    pipeline.bloomScale = 0.5;
                     this.condition = 2;
+                    BABYLON.ParticleHelper.CreateAsync("explosion", scene).then((set) => {
+                        set.systems.forEach(x => {
+                            x.disposeOnStop = true;
+                            x.maxSize = 0;
+                            x.minSize = 0;
+                        });
+                        set.start(this.gamb.position);
+                        this.smoke.dispose();
+                    });
                 }
                 else if (this.condition == 0) {
                     this.condition = 1;
@@ -295,11 +309,16 @@
             BABYLON.SceneLoader.ImportMesh("", "https://models.babylonjs.com/", "ExplodingBarrel.glb", scene, function (newMeshes, particleSystems, skeletons, animationGroups) {
                 var barrel = newMeshes[0];
 
+
+
                 //const cylinder = BABYLON.MeshBuilder.CreateCylinder("barril", { diameter: 0.65 }, scene);
                 var aux = new Barrel(barrel, 'barril1', new BABYLON.Vector3(3, 0, 0));
                 barrels.push(aux);
 
             });
+
+
+
 
             // Load hero character
             BABYLON.SceneLoader.ImportMesh("", "https://assets.babylonjs.com/meshes/", "HVGirl.glb", scene, function (newMeshes, particleSystems, skeletons, animationGroups) {
@@ -326,7 +345,7 @@
                 const idleAnim = scene.getAnimationGroupByName("Idle");
                 const sambaAnim = scene.getAnimationGroupByName("Samba");
 
-
+                var first_position = hero.position;
 
                 //Rendering loop (executed for everyframe)
                 scene.onBeforeRenderObservable.add(() => {
@@ -360,21 +379,6 @@
                         }
                     } else {
 
-                        /*if (lastMove == 'back') {
-                            if (inputMap["w"]) {
-                                hero.moveWithCollisions(hero.forward.scaleInPlace(heroSpeed));
-                                keydown = true;
-                                lastMove = 'front';
-
-                            }
-                        } else {
-
-                            if (inputMap["s"]) {
-                                hero.moveWithCollisions(hero.forward.scaleInPlace(-heroSpeedBackwards));
-                                keydown = true;
-                                lastMove = 'back';
-                            }
-                        }*/
                     }
 
                     //
