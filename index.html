@@ -65,6 +65,8 @@
 
             buildGUI();
             createApples();
+            createBarrel(new BABYLON.Vector3(3, 0, 0));
+            //createBarrel(new BABYLON.Vector3(6, 0, 0));
             createEnvironment();
             managerEvents();
             createHero();
@@ -304,19 +306,19 @@
 
 
         }
-        function createHero() {
-
-
+        function createBarrel(position) {
             BABYLON.SceneLoader.ImportMesh("", "https://models.babylonjs.com/", "ExplodingBarrel.glb", scene, function (newMeshes, particleSystems, skeletons, animationGroups) {
                 var barrel = newMeshes[0];
-
-
-
                 //const cylinder = BABYLON.MeshBuilder.CreateCylinder("barril", { diameter: 0.65 }, scene);
-                var aux = new Barrel(barrel, 'barril1', new BABYLON.Vector3(3, 0, 0));
+                var aux = new Barrel(barrel, 'barril1', position);
                 barrels.push(aux);
 
             });
+        }
+        function createHero() {
+
+
+
 
 
 
