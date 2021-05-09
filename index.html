@@ -127,7 +127,7 @@
                 new BABYLON.Vector3(0, 6, 0)
             ];
 
-            const tube = BABYLON.MeshBuilder.CreateTube("tube", { path: myPath, radius: 10, sideOrientation: BABYLON.Mesh.DOUBLESIDE }, scene);
+            const tube = BABYLON.MeshBuilder.CreateTube("tube", { path: myPath, radius: 50, sideOrientation: BABYLON.Mesh.DOUBLESIDE }, scene);
             tube.isVisible = true;
 
 
@@ -258,7 +258,7 @@
                 scene.imageProcessingConfiguration.exposure = 1;
 
 
-                this.sound = new BABYLON.Sound("explosion", "sounds/explosion.wav", scene, null, { loop: false, autoplay: true });
+                this.sound = new BABYLON.Sound("explosion", "sounds/explosion.wav", scene, null, { loop: false, autoplay: false });
             }
 
             destroy() {
@@ -273,7 +273,7 @@
                     scene.removeMesh(this.gamb);
 
                     //this.particleSystem.start();
-                    //this.sound.play();
+                    this.sound.play();
                     var pipeline = new BABYLON.DefaultRenderingPipeline("default", true, scene);
 
                     // Tone mapping
@@ -355,9 +355,9 @@
                     var tube = scene.getMeshByName('tube');
 
                     var keydown = false;
-                    //Manage the movements of the character (e.g. position, direction)
-                    //console.log(lastMove);
-                    if (tube.intersectsMesh(hero)) {
+
+                    var inside = isInside(hero.position, 50);
+                    if (inside) {
                         if (inputMap["w"]) {
                             hero.moveWithCollisions(hero.forward.scaleInPlace(heroSpeed));
                             keydown = true;
@@ -381,14 +381,22 @@
                             lastMove = 'back';
                         }
                     } else {
+                        if (lastMove == 'front') {
+                            if (inputMap["s"]) {
+                                hero.moveWithCollisions(hero.forward.scaleInPlace(-heroSpeedBackwards));
+                                keydown = true;
 
+                            }
+                        }
+                        else {
+                            if (inputMap["w"]) {
+                                hero.moveWithCollisions(hero.forward.scaleInPlace(heroSpeed));
+                                keydown = true;
+
+                            }
+                        }
                     }
 
-                    //
-
-
-                    //console.log(typeof (tube));
-                    //Manage animations to be played 
 
                     if (keydown) {
 
@@ -467,6 +475,11 @@
             }
         }
 
+
+        function isInside(position, radius) {
+            return (Math.sqrt(Math.pow(position.x, 2) + Math.pow(position.z, 2)) <= radius);
+        }
+
         class Apple {
             constructor(name, scale, posX, posZ) {
                 // Load Apple
@@ -486,6 +499,8 @@
                 });
             }
         }
+
+
 
         initFunction = async function () {
             var asyncEngineCreation = async function () {
