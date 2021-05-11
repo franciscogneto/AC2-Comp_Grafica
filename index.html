@@ -62,14 +62,38 @@
 
             // Scene
             scene = new BABYLON.Scene(engine);
+            /*var pipeline = new BABYLON.DefaultRenderingPipeline("default", true, scene);
 
+            // Tone mapping
+            scene.imageProcessingConfiguration.toneMappingEnabled = true;
+            scene.imageProcessingConfiguration.toneMappingType = BABYLON.ImageProcessingConfiguration.TONEMAPPING_ACES;
+            scene.imageProcessingConfiguration.exposure = 1;
+
+            // Bloom
+            pipeline.bloomEnabled = true;
+            pipeline.bloomThreshold = 0.8;
+            pipeline.bloomWeight = 1;
+            pipeline.bloomKernel = 64;
+            pipeline.bloomScale = 0.5;*/
             buildGUI();
             createApples();
-            createBarrel(new BABYLON.Vector3(3, 0, 0));
-            //createBarrel(new BABYLON.Vector3(6, 0, 0));
+
             createEnvironment();
             managerEvents();
             createHero();
+            var pipeline = new BABYLON.DefaultRenderingPipeline("default", true, scene);
+
+            // Tone mapping
+            scene.imageProcessingConfiguration.toneMappingEnabled = true;
+            scene.imageProcessingConfiguration.toneMappingType = BABYLON.ImageProcessingConfiguration.TONEMAPPING_ACES;
+            scene.imageProcessingConfiguration.exposure = 1;
+
+            // Bloom
+            pipeline.bloomEnabled = true;
+            pipeline.bloomThreshold = 0.8;
+            pipeline.bloomWeight = 1;
+            pipeline.bloomKernel = 64;
+            pipeline.bloomScale = 0.5;
 
             return scene;
         }
@@ -170,6 +194,15 @@
 
             tree.clone().position.x -= 100;
             auxTree.clone().position.x -= 100;
+
+
+            createBarrel(new BABYLON.Vector3(30, 0, 10), '1');
+            createBarrel(new BABYLON.Vector3(10, 0, -40), '2');
+            createBarrel(new BABYLON.Vector3(35, 0, 30), '3');
+            createBarrel(new BABYLON.Vector3(-30, 0, -40), '4');
+            createBarrel(new BABYLON.Vector3(-30, 0, 10), '5');
+            createBarrel(new BABYLON.Vector3(-10, 0, 30), '6');
+
         }
 
         function buildGUI() {
@@ -246,31 +279,32 @@
                 this.barrel.name = name;
                 this.barrel.scaling.scaleInPlace(0.015);
                 //const cylinder = BABYLON.MeshBuilder.CreateCylinder(name, { diameter: 0.65 }, scene);
-                this.gamb = BABYLON.MeshBuilder.CreateCylinder(name, { diameter: 0.65 }, scene);
-                this.gamb.position = this.barrel.position = position;
+                this.gamb = BABYLON.MeshBuilder.CreateCylinder(name, { diameter: 0.65, height: 1 }, scene);
+
+                this.barrel.position = position;
+                this.gamb.position = new BABYLON.Vector3(position.x, 0.5, position.z);
+
 
                 scene.addMesh(this.barrel);
                 interableMeshs.push(this.gamb);
-                BABYLON.ParticleHelper.CreateAsync("smoke", scene).then((set) => {
+                /*BABYLON.ParticleHelper.CreateAsync("smoke", scene).then((set) => {
                     this.smoke = set;
                     set.start(this.gamb.position);
-                });
+                });*/
 
-                // Tone mapping
-                scene.imageProcessingConfiguration.toneMappingEnabled = true;
-                scene.imageProcessingConfiguration.toneMappingType = BABYLON.ImageProcessingConfiguration.TONEMAPPING_ACES;
-                scene.imageProcessingConfiguration.exposure = 1;
+
 
 
                 this.sound = new BABYLON.Sound("explosion", "sounds/explosion.wav", scene, null, { loop: false, autoplay: false });
             }
 
             destroy() {
+
                 if (this.condition == 1) {
 
 
 
-                    console.log('aaa');
+
                     this.barrel.dispose();
                     this.gamb.dispose();
                     scene.removeMesh(this.barrel);
@@ -278,19 +312,7 @@
 
                     //this.particleSystem.start();
                     this.sound.play();
-                    var pipeline = new BABYLON.DefaultRenderingPipeline("default", true, scene);
 
-                    // Tone mapping
-                    scene.imageProcessingConfiguration.toneMappingEnabled = true;
-                    scene.imageProcessingConfiguration.toneMappingType = BABYLON.ImageProcessingConfiguration.TONEMAPPING_ACES;
-                    scene.imageProcessingConfiguration.exposure = 1;
-
-                    // Bloom
-                    pipeline.bloomEnabled = true;
-                    pipeline.bloomThreshold = 0.8;
-                    pipeline.bloomWeight = 1;
-                    pipeline.bloomKernel = 64;
-                    pipeline.bloomScale = 0.5;
                     this.condition = 2;
                     BABYLON.ParticleHelper.CreateAsync("explosion", scene).then((set) => {
                         set.systems.forEach(x => {
@@ -310,11 +332,11 @@
 
 
         }
-        function createBarrel(position) {
+        function createBarrel(position, i) {
             BABYLON.SceneLoader.ImportMesh("", "https://models.babylonjs.com/", "ExplodingBarrel.glb", scene, function (newMeshes, particleSystems, skeletons, animationGroups) {
                 var barrel = newMeshes[0];
-                //const cylinder = BABYLON.MeshBuilder.CreateCylinder("barril", { diameter: 0.65 }, scene);
-                var aux = new Barrel(barrel, 'barril1', position);
+                barrel.position = position;
+                var aux = new Barrel(barrel, 'barril' + i, position);
                 barrels.push(aux);
 
             });
@@ -440,17 +462,17 @@
                             animating = false;
                         }
                     }
-                    var barril = scene.getMeshByName('barril');
+                    //var barril = scene.getMeshByName('barril');
                     var hero1 = scene.getMeshByName('hero');
                     interableMeshs.forEach((element) => {
                         if (element != null) {
                             if (hero.intersectsMesh(element)) {
-                                barrels.forEach((barrel) => {
 
+                                barrels.forEach((barrel) => {
                                     if (barrel.barrel.name == element.name) {
 
-                                        barrel.destroy();
 
+                                        barrel.destroy();
                                     }
                                 });
                             }
