@@ -156,7 +156,7 @@
             ];
 
             const tube = BABYLON.MeshBuilder.CreateTube("tube", { path: myPath, radius: 50, sideOrientation: BABYLON.Mesh.DOUBLESIDE }, scene);
-            tube.isVisible = true;
+            tube.isVisible = false;
 
 
             //const heroTube = BABYLON.MeshBuilder.CreateTube("heroTube", { path: myPath, radius: 0.25, sideOrientation: BABYLON.Mesh.DOUBLESIDE }, scene);
@@ -196,13 +196,63 @@
             auxTree.clone().position.x -= 100;
 
 
-            createBarrel(new BABYLON.Vector3(30, 0, 10), '1');
+            createBarrel(new BABYLON.Vector3(20, 0, 10), '1');
             createBarrel(new BABYLON.Vector3(10, 0, -40), '2');
             createBarrel(new BABYLON.Vector3(35, 0, 30), '3');
-            createBarrel(new BABYLON.Vector3(-30, 0, -40), '4');
-            createBarrel(new BABYLON.Vector3(-30, 0, 10), '5');
+            createBarrel(new BABYLON.Vector3(-15, 0, -40), '4');
+            createBarrel(new BABYLON.Vector3(-5, 0, 10), '5');
             createBarrel(new BABYLON.Vector3(-10, 0, 30), '6');
+            var positions = [new BABYLON.Vector3(40, 1, 10), new BABYLON.Vector3(40, 1, 35), new BABYLON.Vector3(40, 1, -11)];
+            BABYLON.SceneLoader.ImportMeshAsync("", "https://assets.babylonjs.com/meshes/", "both_houses_scene.babylon").then((result) => {
 
+                scene.getMeshByName("ground").dispose();
+                const house1 = scene.getMeshByName("detached_house");
+                const house2 = result.meshes[2];
+
+                house1.position = new BABYLON.Vector3(40, 0, 15);
+                house2.position = new BABYLON.Vector3(40, 0, 40);
+                house1.scaling = new BABYLON.Vector3(4, 4, 4);
+                house2.scaling = new BABYLON.Vector3(4, 4, 4);
+                house2.clone().position = new BABYLON.Vector3(40, 0, -15);
+
+                house2.clone().position = new BABYLON.Vector3(-40, 0, 15);
+                house1.clone().position = new BABYLON.Vector3(-40, 0, 40);
+                house1.clone().position = new BABYLON.Vector3(-40, 0, -15);
+
+            });
+
+            BABYLON.SceneLoader.ImportMeshAsync("", "https://assets.babylonjs.com/meshes/", "car.glb").then(() => {
+                var car = scene.getMeshByName("car");
+                car.scaling = new BABYLON.Vector3(7, 7, 7);
+                car.position.y = 1;
+
+                for (var i = 0; i < 3; i++) {
+                    var aux = car.clone().position = positions[i];
+                }
+                car.dispose();
+
+
+            });
+
+            BABYLON.SceneLoader.ImportMesh("", "https://models.babylonjs.com/", "alien.glb", scene, function (meshes) {
+
+                var aux = meshes[0];
+                //aux.position.y = 6;
+                aux.scaling = new BABYLON.Vector3(2, 2, 2);
+                aux.position = new BABYLON.Vector3(37.75, 3, 16);
+                aux.rotation = new BABYLON.Vector3(Math.PI / 7, -Math.PI / 2, 0);
+
+                var aux2 = aux.clone();
+                aux2.position = new BABYLON.Vector3(35.75, 3, -14);
+
+            });
+            BABYLON.SceneLoader.ImportMesh("", "https://playground.babylonjs.com/scenes/", "BoomBox.glb", scene, function (meshes) {
+                var aux = meshes[0];
+                //aux.position.y = 6;
+                aux.scaling = new BABYLON.Vector3(150, 150, 150);
+                aux.position = new BABYLON.Vector3(0, 1.25, 50);
+                console.log(aux);
+            });
         }
 
         function buildGUI() {
@@ -490,14 +540,22 @@
         }
 
         function createApples() {
-            var numApples = 10;
+            var numApples = 11;
             var initScale = 0.1;
             var incScale = 0.2;
             var posApplesX = [0, 4, 7, 8, 6, 3, 0, -6, -8, -4.5];
             var posApplesZ = [8, 6, 3, 0, -4, -7, -8, -5.5, 0, 4.5];
+            var z_ini = -40;
+            var x_ini = 30;
+            for (var i = 1; i <= numApples; i++, z_ini += 7) {
 
-            for (var i = 0; i < numApples; i++) {
-                var appleItem = new Apple("apple" + i, initScale += incScale, posApplesX[i], posApplesZ[i]);
+
+                //var appleItem = new Apple("apple" + i, initScale += incScale, posApplesX[i] + aux, posApplesZ[i] + aux2);
+                if (i % 2 == 0)
+                    var appleItem = new Apple("apple" + i, initScale += incScale, x_ini, z_ini);
+                else
+                    var appleItem = new Apple("apple" + i, initScale += incScale, -x_ini, z_ini);
+
             }
         }
 
