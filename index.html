@@ -196,6 +196,7 @@
             auxTree.clone().position.x -= 100;
 
 
+
             createBarrel(new BABYLON.Vector3(20, 0, 10), '1');
             createBarrel(new BABYLON.Vector3(10, 0, -40), '2');
             createBarrel(new BABYLON.Vector3(35, 0, 30), '3');
@@ -413,7 +414,7 @@
                 camera.target = hero;
 
                 //Hero character variables 
-                var heroSpeed = 0.03;
+                var heroSpeed = 0.07;
                 var heroSpeedBackwards = 0.01;
                 var heroRotationSpeed = 0.1;
 
@@ -480,17 +481,17 @@
                             animating = true;
                             if (inputMap["s"]) {
                                 //Walk backwards
-                                walkBackAnim.start(true, 1.0, walkBackAnim.from, walkBackAnim.to, false);
+                                walkBackAnim.start(true, 2.0, walkBackAnim.from, walkBackAnim.to, false);
 
                             }
                             else if
                                 (inputMap["b"]) {
                                 //Samba!
-                                sambaAnim.start(true, 1.0, sambaAnim.from, sambaAnim.to, false);
+                                sambaAnim.start(true, 2.0, sambaAnim.from, sambaAnim.to, false);
                             }
                             else {
                                 //Walk
-                                walkAnim.start(true, 1.0, walkAnim.from, walkAnim.to, false);
+                                walkAnim.start(true, 2.0, walkAnim.from, walkAnim.to, false);
 
                             }
                         }
@@ -501,7 +502,7 @@
 
                         if (animating) {
                             //Default animation is idle when no key is down     
-                            idleAnim.start(true, 1.0, idleAnim.from, idleAnim.to, false);
+                            idleAnim.start(true, 2.0, idleAnim.from, idleAnim.to, false);
 
                             //Stop all animations besides Idle Anim when no key is down
                             sambaAnim.stop();
