@@ -48,7 +48,13 @@
         var scene = null;
         var sceneToRender = null;
         var createDefaultEngine = function () { return new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true, disableWebGL2Support: false }); };
+        var coordSystem = function (b) { var g = b.normalize(); b = 0 == Math.abs(b.x) && 0 == Math.abs(b.y) ? (new BABYLON.Vector3(b.z, 0, 0)).normalize() : (new BABYLON.Vector3(b.y, -b.x, 0)).normalize(); var r = BABYLON.Vector3.Cross(b, g); return { x: b, y: g, z: r } }, randPct = function (b, g) { return 0 == g ? b : (1 + (1 - 2 * Math.random()) * g) * b }, createBranch = function (b, g, r, w, h, l, v, n, x) { for (var t = [], d, c = [], f, q = [], a = 0; 12 > a; a++)t[a] = []; for (var m = 0; m < h; m++)for (a = m / h, d = g.y.scale(a * r), d.addInPlace(g.x.scale(v * Math.exp(-a) * Math.sin(l * a * Math.PI))), d.addInPlace(b), c[m] = d, d = n * (1 + (.4 * Math.random() - .2)) * (1 - (1 - w) * a), q.push(d), a = 0; 12 > a; a++)f = a * Math.PI / 6, f = g.x.scale(d * Math.cos(f)).add(g.z.scale(d * Math.sin(f))), f.addInPlace(c[m]), t[a].push(f); for (a = 0; 12 > a; a++)t[a].push(c[c.length - 1]); return { branch: BABYLON.MeshBuilder.CreateRibbon("branch", { pathArray: t, closeArray: !0 }, x), core: c, _radii: q } }, createTreeBase = function (b, g, r, w, h, l, v, n, x, t) { var d = 2 / (1 + Math.sqrt(5)), c = new BABYLON.Vector3(0, 1, 0), f, c = coordSystem(c), q = new BABYLON.Vector3(0, 0, 0), a = [], m = [], e = [], A = [], q = createBranch(q, c, b, g, r, 1, x, 1, t); a.push(q.branch); var y = q.core; m.push(y); e.push(q._radii); A.push(c); for (var q = y[y.length - 1], y = 2 * Math.PI / h, z, u, p, C, B = 0; B < h; B++)if (f = randPct(B * y, .25), f = c.y.scale(Math.cos(randPct(l, .15))).add(c.x.scale(Math.sin(randPct(l, .15)) * Math.sin(f))).add(c.z.scale(Math.sin(randPct(l, .15)) * Math.cos(f))), z = coordSystem(f), f = createBranch(q, z, b * v, g, r, n, x * d, g, t), p = f.core, p = p[p.length - 1], a.push(f.branch), m.push(f.core), e.push(f._radii), A.push(z), 1 < w) for (var D = 0; D < h; D++)u = randPct(D * y, .25), u = z.y.scale(Math.cos(randPct(l, .15))).add(z.x.scale(Math.sin(randPct(l, .15)) * Math.sin(u))).add(z.z.scale(Math.sin(randPct(l, .15)) * Math.cos(u))), u = coordSystem(u), C = createBranch(p, u, b * v * v, g, r, n, x * d * d, g * g, t), a.push(C.branch), m.push(C.core), e.push(f._radii), A.push(u); return { tree: BABYLON.Mesh.MergeMeshes(a), paths: m, radii: e, directions: A } }, createTree = function (b, g, r, w, h, l, v, n, x, t, d, c, f, q, a, m) { 1 != h && 2 != h && (h = 1); var e = createTreeBase(b, g, r, h, l, v, n, d, c, m); e.tree.material = w; var A = b * Math.pow(n, h), y = A / (2 * f), z = 1.5 * Math.pow(g, h - 1); n = BABYLON.MeshBuilder.CreateDisc("leaf", { radius: z / 2, tessellation: 12, sideOrientation: BABYLON.Mesh.DOUBLESIDE }, m); b = new BABYLON.SolidParticleSystem("leaveSPS", m, { updatable: !1 }); b.addShape(n, 2 * f * Math.pow(l, h), { positionFunction: function (b, a, g) { a = Math.floor(g / (2 * f)); 1 == h ? a++ : a = 2 + a % l + Math.floor(a / l) * (l + 1); var E = (g % (2 * f) * y + 3 * y / 2) / A, d = Math.ceil(r * E); d > e.paths[a].length - 1 && (d = e.paths[a].length - 1); var k = d - 1, c = k / (r - 1), m = d / (r - 1); b.position = new BABYLON.Vector3(e.paths[a][k].x + (e.paths[a][d].x - e.paths[a][k].x) * (E - c) / (m - c), e.paths[a][k].y + (e.paths[a][d].y - e.paths[a][k].y) * (E - c) / (m - c) + (.6 * z / q + e.radii[a][d]) * (g % 2 * 2 - 1), e.paths[a][k].z + (e.paths[a][d].z - e.paths[a][k].z) * (E - c) / (m - c)); b.rotation.z = Math.random() * Math.PI / 4; b.rotation.y = Math.random() * Math.PI / 2; b.rotation.z = Math.random() * Math.PI / 4; b.scale.y = 1 / q } }); b = b.buildMesh(); b.billboard = !0; n.dispose(); d = new BABYLON.SolidParticleSystem("miniSPS", m, { updatable: !1 }); n = new BABYLON.SolidParticleSystem("minileavesSPS", m, { updatable: !1 }); var u = []; c = 2 * Math.PI / l; for (var p = 0; p < Math.pow(l, h + 1); p++)u.push(randPct(Math.floor(p / Math.pow(l, h)) * c, .2)); c = function (a, b, d) { var c = d % Math.pow(l, h); 1 == h ? c++ : c = 2 + c % l + Math.floor(c / l) * (l + 1); var f = e.directions[c], c = new BABYLON.Vector3(e.paths[c][e.paths[c].length - 1].x, e.paths[c][e.paths[c].length - 1].y, e.paths[c][e.paths[c].length - 1].z), k = u[d], k = f.y.scale(Math.cos(randPct(v, 0))).add(f.x.scale(Math.sin(randPct(v, 0)) * Math.sin(k))).add(f.z.scale(Math.sin(randPct(v, 0)) * Math.cos(k))), f = BABYLON.Vector3.Cross(BABYLON.Axis.Y, k), k = Math.acos(BABYLON.Vector3.Dot(k, BABYLON.Axis.Y) / k.length()); a.scale = new BABYLON.Vector3(Math.pow(g, h + 1), Math.pow(g, h + 1), Math.pow(g, h + 1)); a.quaternion = BABYLON.Quaternion.RotationAxis(f, k); a.position = c; }; for (var C = [], B = [], p = e.paths.length, D = e.paths[0].length, F = 0; F < x; F++)C.push(2 * Math.PI * Math.random() - Math.PI), B.push([Math.floor(Math.random() * p), Math.floor(Math.random() * (D - 1) + 1)]); p = function (a, c, b) { var d = B[b][0], f = B[b][1], k = e.directions[d]; c = new BABYLON.Vector3(e.paths[d][f].x, e.paths[d][f].y, e.paths[d][f].z); c.addInPlace(k.z.scale(e.radii[d][f] / 2)); b = C[b]; k = k.y.scale(Math.cos(randPct(t, 0))).add(k.x.scale(Math.sin(randPct(t, 0)) * Math.sin(b))).add(k.z.scale(Math.sin(randPct(t, 0)) * Math.cos(b))); b = BABYLON.Vector3.Cross(BABYLON.Axis.Y, k); k = Math.acos(BABYLON.Vector3.Dot(k, BABYLON.Axis.Y) / k.length()); a.scale = new BABYLON.Vector3(Math.pow(g, h + 1), Math.pow(g, h + 1), Math.pow(g, h + 1)); a.quaternion = BABYLON.Quaternion.RotationAxis(b, k); a.position = c }; d.addShape(e.tree, Math.pow(l, h + 1), { positionFunction: c }); d.addShape(e.tree, x, { positionFunction: p }); d = d.buildMesh(); d.material = w; n.addShape(b, Math.pow(l, h + 1), { positionFunction: c }); n.addShape(b, x, { positionFunction: p }); w = n.buildMesh(); b.dispose(); w.material = a; a = BABYLON.MeshBuilder.CreateBox("", {}, m); a.isVisible = !1; e.tree.parent = a; d.parent = a; return w.parent = a };
         var camera = null;
+        var inputMap = {};
+        var lastMove = '';
+        var interableMeshs = [];
+        var barrels = [];
+        var iteracao = 0;
         var advancedTexture = null;
         var play = false;
         var soundCollectingApple = null;
@@ -57,11 +63,9 @@
         var totalApples = 10;
         var collectedApples = 0;
         var textScore = null;
+        var btn_restart = null;
 
         var createScene = function () {
-
-            // Low Poly Character with Blender Tutorial of Grant Abbitt: https://www.youtube.com/user/mediagabbitt
-            // Character animations by Mixamo: https://www.mixamo.com/
 
             engine.enableOfflineSupport = false;
 
@@ -89,20 +93,37 @@
             // Start Game
             start_game();
 
-            BABYLON.SceneLoader.ImportMesh("", "https://models.babylonjs.com/", "ExplodingBarrel.glb", scene, function (newMeshes, particleSystems, skeletons, animationGroups) {
-                var barrel = newMeshes[0];
-                barrel.name = name;
-
-                //Scale the barrel model      
-                barrel.scaling.scaleInPlace(0.01);
-
-                scene.addMesh(barrel);
-            });
-
             return scene;
         }
 
+        function start_game() {
+
+            var i = 10;
+            var textBlock = new BABYLON.GUI.TextBlock("text", new String(i));
+            textBlock.color = "red";
+            textBlock.fontSize = "60px";
+            var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+            advancedTexture.addControl(textBlock);
+            var handle = window.setInterval(() => {
+                i--;
+                textBlock.text = new String(i);
+                if (i === -1) {
+                    window.clearInterval(handle);
+                    play = true;
+                    textBlock.dispose();
+                    advancedTexture.dispose();
+                }
+                if (i === 0) {
+                    textBlock.text = "Colete as Maças!";
+                }
+            }, 1000);
+        }
+
         function create_environment() {
+
+            // Scene 
+            scene.clearColor = BABYLON.Color3.Black();
+            scene.ambientColor = new BABYLON.Color3(.1, .1, .1);
 
             // Camera 
             camera = new BABYLON.ArcRotateCamera("camera", Math.PI / 2, Math.PI / 4, 10, new BABYLON.Vector3(0, -5, 0), scene);
@@ -114,11 +135,8 @@
 
             // Lights
             var light = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(0, 1, 0), scene);
-            light.intensity = 0.6;
+            light.intensity = 0.8;
             light.specular = BABYLON.Color3.Black();
-
-            var light2 = new BABYLON.DirectionalLight("dir01", new BABYLON.Vector3(0, -0.5, -1.0), scene);
-            light2.position = new BABYLON.Vector3(0, 5, 5);
 
             // Skybox
             var skybox = BABYLON.MeshBuilder.CreateBox("skyBox", { size: 1000.0 }, scene);
@@ -137,13 +155,116 @@
             largeGround.scaling = new BABYLON.Vector3(5, 5, 5);
             largeGround.material = largeGroundMaterial;
 
-            // Tube to delimit the area
+            //Tube to delimit the area
+            var areaMat = new BABYLON.StandardMaterial("areaMat", scene);
+            areaMat.ambientColor = new BABYLON.Color3(10, .5, .5);
+            areaMat.specularColor = new BABYLON.Color3(0, 0, 0);
+            areaMat.alpha = 0.6;
             const myPath = [
                 new BABYLON.Vector3(0, 0, 0),
                 new BABYLON.Vector3(0, 6, 0)
             ];
-            const tube = BABYLON.MeshBuilder.CreateTube("tube", { path: myPath, radius: 50, sideOrientation: BABYLON.Mesh.DOUBLESIDE }, scene);
-            tube.isVisible = true;
+            const tube = BABYLON.MeshBuilder.CreateTube("tube", { path: myPath, radius: 80, sideOrientation: BABYLON.Mesh.DOUBLESIDE }, scene);
+            tube.material = areaMat;
+
+            // Meshs
+            load_meshs();
+        }
+
+        function load_meshs() {
+
+            //tree
+            var green = new BABYLON.StandardMaterial("green", scene);
+            green.diffuseColor = new BABYLON.Color3(0, 1, 0);
+
+            //trunk and branch material
+            var bark = new BABYLON.StandardMaterial("bark", scene);
+            bark.emissiveTexture = new BABYLON.Texture("https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Bark_texture_wood.jpg/800px-Bark_texture_wood.jpg", scene);
+            bark.diffuseTexture = new BABYLON.Texture("https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Bark_texture_wood.jpg/800px-Bark_texture_wood.jpg", scene);
+            bark.diffuseTexture.uScale = 2.0;//Repeat 5 times on the Vertical Axes
+            bark.diffuseTexture.vScale = 2.0;//Repeat 5 times on the Horizontal Axes		
+
+            //Tree parameters			
+            var trunk_height = 10;
+            var trunk_taper = 0.5;
+            var trunk_slices = 8;
+            var boughs = 1; // 1 or 2
+            var forks = 4;
+            var fork_angle = Math.PI / 4;
+            var fork_ratio = 2 / (1 + Math.sqrt(5)); //PHI the golden ratio
+            var branch_angle = Math.PI / 3;
+            var bow_freq = 2;
+            var bow_height = 3.5;
+            var branches = 10;
+            var leaves_on_branch = 5;
+            var leaf_wh_ratio = 0.5;
+
+            var tree = createTree(trunk_height, trunk_taper, trunk_slices, bark, boughs, forks, fork_angle, fork_ratio, branches, branch_angle, bow_freq, bow_height, leaves_on_branch, leaf_wh_ratio, green, scene);
+            tree.position.x += 50;
+            var auxTree = tree.clone();
+            auxTree.position.z += 50;
+
+            tree.clone().position.x -= 100;
+            auxTree.clone().position.x -= 100;
+
+            createBarrel(new BABYLON.Vector3(20, 0, 10), '1');
+            createBarrel(new BABYLON.Vector3(10, 0, -40), '2');
+            createBarrel(new BABYLON.Vector3(35, 0, 30), '3');
+            createBarrel(new BABYLON.Vector3(-15, 0, -40), '4');
+            createBarrel(new BABYLON.Vector3(-5, 0, 10), '5');
+            createBarrel(new BABYLON.Vector3(-10, 0, 30), '6');
+            var positions = [new BABYLON.Vector3(40, 1, 10), new BABYLON.Vector3(40, 1, 35), new BABYLON.Vector3(40, 1, -11)];
+            BABYLON.SceneLoader.ImportMeshAsync("", "https://assets.babylonjs.com/meshes/", "both_houses_scene.babylon").then((result) => {
+
+                scene.getMeshByName("ground").dispose();
+                const house1 = scene.getMeshByName("detached_house");
+                const house2 = result.meshes[2];
+
+                house1.position = new BABYLON.Vector3(40, 0, 15);
+                house2.position = new BABYLON.Vector3(40, 0, 40);
+                house1.scaling = new BABYLON.Vector3(4, 4, 4);
+                house2.scaling = new BABYLON.Vector3(4, 4, 4);
+                house2.clone().position = new BABYLON.Vector3(40, 0, -15);
+
+                house2.clone().position = new BABYLON.Vector3(-40, 0, 15);
+                house1.clone().position = new BABYLON.Vector3(-40, 0, 40);
+                house1.clone().position = new BABYLON.Vector3(-40, 0, -15);
+
+            });
+
+            BABYLON.SceneLoader.ImportMeshAsync("", "https://assets.babylonjs.com/meshes/", "car.glb").then(() => {
+                var car = scene.getMeshByName("car");
+                car.scaling = new BABYLON.Vector3(7, 7, 7);
+                car.position.y = 1;
+
+                for (var i = 0; i < 3; i++) {
+                    var aux = car.clone().position = positions[i];
+                }
+                car.dispose();
+
+
+            });
+
+            BABYLON.SceneLoader.ImportMesh("", "https://models.babylonjs.com/", "alien.glb", scene, function (meshes) {
+
+                var aux = meshes[0];
+                //aux.position.y = 6;
+                aux.scaling = new BABYLON.Vector3(2, 2, 2);
+                aux.position = new BABYLON.Vector3(37.75, 3, 16);
+                aux.rotation = new BABYLON.Vector3(Math.PI / 7, -Math.PI / 2, 0);
+
+                var aux2 = aux.clone();
+                aux2.position = new BABYLON.Vector3(35.75, 3, -14);
+
+            });
+
+            BABYLON.SceneLoader.ImportMesh("", "https://playground.babylonjs.com/scenes/", "BoomBox.glb", scene, function (meshes) {
+                var aux = meshes[0];
+                //aux.position.y = 6;
+                aux.scaling = new BABYLON.Vector3(150, 150, 150);
+                aux.position = new BABYLON.Vector3(0, 1.25, 50);
+                console.log(aux);
+            });
         }
 
         function build_GUI() {
@@ -175,6 +296,16 @@
             autoresPanel.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
             autoresPanel.fontSize = 16;
             advancedTexture.addControl(autoresPanel);
+
+            var objetivoPanel = new BABYLON.GUI.StackPanel();
+            objetivoPanel.width = "600px"
+            objetivoPanel.height = "100px";
+            objetivoPanel.isVertical = true;
+            objetivoPanel.paddingBottom = "10px";
+            objetivoPanel.horizontalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+            objetivoPanel.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+            objetivoPanel.fontSize = 16;
+            advancedTexture.addControl(objetivoPanel);
 
             var comandosPanel = new BABYLON.GUI.StackPanel();
             comandosPanel.width = "155px";
@@ -216,6 +347,18 @@
             addHeader("AUTORES", autoresPanel, alinhamentoCentro);
             addHeader("Francisco Godinho Neto - 180141", autoresPanel, alinhamentoCentro);
             addHeader("Vinícius Cavalcante Silva Souza - 180854", autoresPanel, alinhamentoCentro);
+
+            addHeader("OBJETIVO: Coletar as maças na ordem crescente de tamanho!", objetivoPanel, alinhamentoCentro);
+
+            btn_restart = BABYLON.GUI.Button.CreateSimpleButton("btn_restart", "RESTART");
+            btn_restart.isVisible = false;
+            btn_restart.width = "150px";
+            btn_restart.height = "40px";
+            btn_restart.color = "white";
+            btn_restart.cornerRadius = 20;
+            btn_restart.background = "gray";
+
+            advancedTexture.addControl(btn_restart);
         }
 
         function manager_events() {
@@ -232,19 +375,26 @@
 
             //Rendering loop (executed for everyframe)
             scene.onBeforeRenderObservable.add(() => {
-                if (inputMap["p"] && !play) {
-                    play = true;
-                    console.log("play");
-                }
 
                 // Fim da Caçada
                 if (collectedApples == totalApples) {
-                    //Samba!
+                    // End of Game
+                    play = false;
+                    // Samba
                     sambaAnim.start(true, 1.0, sambaAnim.from, sambaAnim.to, false);
+                    // Show Restart Button
+                    btn_restart.isVisible = true;
                 }
             });
 
+            btn_restart.onPointerUpObservable.add(function () {
+                window.location.reload();
+            });
 
+        }
+
+        function isInside(position, radius) {
+            return (Math.sqrt(Math.pow(position.x, 2) + Math.pow(position.z, 2)) <= radius);
         }
 
         function load_sounds() {
@@ -272,8 +422,8 @@
                 camera.target = hero;
 
                 //Hero character variables 
-                var heroSpeed = 0.03;
-                var heroSpeedBackwards = 0.01;
+                var heroSpeed = 0.1;
+                var heroSpeedBackwards = 0.05;
                 var heroRotationSpeed = 0.1;
 
                 var animating = true;
@@ -285,78 +435,125 @@
 
                 //Rendering loop (executed for everyframe)
                 scene.onBeforeRenderObservable.add(() => {
+                    var tube = scene.getMeshByName('tube');
                     var keydown = false;
-                    //Manage the movements of the character (e.g. position, direction)
-                    if (inputMap["w"]) {
-                        hero.moveWithCollisions(hero.forward.scaleInPlace(heroSpeed));
-                        keydown = true;
-                    }
-                    if (inputMap["s"]) {
-                        hero.moveWithCollisions(hero.forward.scaleInPlace(-heroSpeedBackwards));
-                        keydown = true;
-                    }
-                    if (inputMap["a"]) {
-                        hero.rotate(BABYLON.Vector3.Up(), -heroRotationSpeed);
-                        keydown = true;
-                    }
-                    if (inputMap["d"]) {
-                        hero.rotate(BABYLON.Vector3.Up(), heroRotationSpeed);
-                        keydown = true;
-                    }
-                    if (inputMap["b"]) {
-                        keydown = true;
-                    }
+                    var inside = isInside(hero.position, 80);
 
-                    //Manage animations to be played  
-                    if (keydown) {
-                        if (!animating) {
-                            animating = true;
-                            if (inputMap["s"]) {
-                                //Walk backwards
-                                walkBackAnim.start(true, 1.0, walkBackAnim.from, walkBackAnim.to, false);
+                    if (play) {
+                        if (inside) {
+                            if (inputMap["w"]) {
+                                hero.moveWithCollisions(hero.forward.scaleInPlace(heroSpeed));
+                                keydown = true;
+                                lastMove = 'front';
                             }
-                            else if
-                                (inputMap["b"]) {
-                                //Samba!
-                                sambaAnim.start(true, 1.0, sambaAnim.from, sambaAnim.to, false);
+                            if (inputMap["a"]) {
+                                hero.rotate(BABYLON.Vector3.Up(), -heroRotationSpeed);
+                                keydown = true;
+                            }
+                            if (inputMap["d"]) {
+                                hero.rotate(BABYLON.Vector3.Up(), heroRotationSpeed);
+                                keydown = true;
+                            }
+                            if (inputMap["b"]) {
+                                keydown = true;
+                            }
+                            if (inputMap["s"]) {
+                                hero.moveWithCollisions(hero.forward.scaleInPlace(-heroSpeedBackwards));
+                                keydown = true;
+                                lastMove = 'back';
+                            }
+                        }
+                        else {
+                            if (lastMove == 'front') {
+                                if (inputMap["s"]) {
+                                    hero.moveWithCollisions(hero.forward.scaleInPlace(-heroSpeedBackwards));
+                                    keydown = true;
+                                }
                             }
                             else {
-                                //Walk
-                                walkAnim.start(true, 1.0, walkAnim.from, walkAnim.to, false);
+                                if (inputMap["w"]) {
+                                    hero.moveWithCollisions(hero.forward.scaleInPlace(heroSpeed));
+                                    keydown = true;
+                                }
                             }
                         }
-                    }
-                    else {
 
-                        if (animating) {
-                            //Default animation is idle when no key is down     
-                            idleAnim.start(true, 1.0, idleAnim.from, idleAnim.to, false);
-
-                            //Stop all animations besides Idle Anim when no key is down
-                            sambaAnim.stop();
-                            walkAnim.stop();
-                            walkBackAnim.stop();
-
-                            //Ensure animation are played only once per rendering loop
-                            animating = false;
+                        if (keydown) {
+                            if (!animating) {
+                                animating = true;
+                                if (inputMap["s"]) {
+                                    //Walk backwards
+                                    walkBackAnim.start(true, 1.0, walkBackAnim.from, walkBackAnim.to, false);
+                                }
+                                else if
+                                    (inputMap["b"]) {
+                                    //Samba!
+                                    sambaAnim.start(true, 1.0, sambaAnim.from, sambaAnim.to, false);
+                                }
+                                else {
+                                    //Walk
+                                    walkAnim.start(true, 1.0, walkAnim.from, walkAnim.to, false);
+                                }
+                            }
                         }
+                        else {
+
+                            if (animating) {
+                                //Default animation is idle when no key is down     
+                                idleAnim.start(true, 1.0, idleAnim.from, idleAnim.to, false);
+
+                                //Stop all animations besides Idle Anim when no key is down
+                                sambaAnim.stop();
+                                walkAnim.stop();
+                                walkBackAnim.stop();
+
+                                //Ensure animation are played only once per rendering loop
+                                animating = false;
+                            }
+                        }
+
+                        var hero1 = scene.getMeshByName('hero');
+                        interableMeshs.forEach((element) => {
+                            if (element != null) {
+                                if (hero.intersectsMesh(element)) {
+                                    barrels.forEach((barrel) => {
+                                        if (barrel.barrel.name == element.name) {
+                                            barrel.destroy();
+                                        }
+                                    });
+                                }
+                            }
+                        });
                     }
                 });
+            });
+        }
+
+        function createBarrel(position, i) {
+            BABYLON.SceneLoader.ImportMesh("", "https://models.babylonjs.com/", "ExplodingBarrel.glb", scene, function (newMeshes, particleSystems, skeletons, animationGroups) {
+                var barrel = newMeshes[0];
+                barrel.position = position;
+                var aux = new Barrel(barrel, 'barril' + i, position);
+                barrels.push(aux);
+
             });
         }
 
         function create_apples() {
             var initScale = 0.1;
             var incScale = 0.2;
-            var posApplesX = [0, 4, 7, 8, 6, 3, 0, -6, -8, -4.5];
-            var posApplesZ = [8, 6, 3, 0, -4, -7, -8, -5.5, 0, 4.5];
+            var z_ini = -40;
+            var x_ini = 30;
 
-            for (var i = 0; i < totalApples; i++) {
-                load_apple("apple" + i, initScale += incScale, posApplesX[i], posApplesZ[i]);
+            for (var i = 0; i < totalApples; i++, z_ini += 7) {
+                if (i % 2 == 0)
+                    load_apple("apple" + i, i, initScale += incScale, x_ini, z_ini);
+                else
+                    load_apple("apple" + i, i, initScale += incScale, -x_ini, z_ini);
             }
         }
 
-        function load_apple(name, scale, posX, posZ) {
+        function load_apple(name, order, scale, posX, posZ) {
 
             BABYLON.SceneLoader.ImportMesh("", "//david.blob.core.windows.net/babylonjs/", "Apple.glb", scene, function (newMeshes) {
 
@@ -382,7 +579,7 @@
 
                 var collected = false;
                 scene.onBeforeRenderObservable.add(() => {
-                    if (play && !collected) {
+                    if (play && !collected && collectedApples == order) {
                         if (bodyMesh.intersectsMesh(hero, true)) {
                             collected = true;
                             collectedApples++;
@@ -397,10 +594,6 @@
                     }
                 });
             });
-        }
-
-        function start_game() {
-
         }
 
         function animation_collectable(mesh) {
@@ -425,6 +618,67 @@
             ySlide.setKeys(keyFramesP);
 
             scene.beginDirectAnimation(mesh, [ySlide], 0, 2 * frameRate, false);
+        }
+
+        class Barrel {
+
+            constructor(barrel, name, position) {
+                //this.name = name;
+                this.condition = 0;
+                this.barrel = barrel;
+                this.barrel.name = name;
+                this.barrel.scaling.scaleInPlace(0.015);
+                //const cylinder = BABYLON.MeshBuilder.CreateCylinder(name, { diameter: 0.65 }, scene);
+                this.gamb = BABYLON.MeshBuilder.CreateCylinder(name, { diameter: 0.65, height: 1 }, scene);
+
+                this.barrel.position = position;
+                this.gamb.position = new BABYLON.Vector3(position.x, 0.5, position.z);
+
+
+                scene.addMesh(this.barrel);
+                interableMeshs.push(this.gamb);
+                /*BABYLON.ParticleHelper.CreateAsync("smoke", scene).then((set) => {
+                    this.smoke = set;
+                    set.start(this.gamb.position);
+                });*/
+
+
+
+
+                this.sound = new BABYLON.Sound("explosion", "sounds/explosion.wav", scene, null, { loop: false, autoplay: false });
+            }
+
+            destroy() {
+
+                if (this.condition == 1) {
+
+
+
+
+                    this.barrel.dispose();
+                    this.gamb.dispose();
+                    scene.removeMesh(this.barrel);
+                    scene.removeMesh(this.gamb);
+
+                    //this.particleSystem.start();
+                    this.sound.play();
+
+                    this.condition = 2;
+                    BABYLON.ParticleHelper.CreateAsync("explosion", scene).then((set) => {
+                        set.systems.forEach(x => {
+                            x.disposeOnStop = true;
+                            x.maxSize = 0;
+                            x.minSize = 0;
+                        });
+                        set.start(this.gamb.position);
+                        this.smoke.dispose();
+                    });
+                }
+                else if (this.condition == 0) {
+                    this.condition = 1;
+                }
+
+            }
         }
 
         // -------------------------------------------------------------------------------------- //
